@@ -82,4 +82,3 @@ const UrlValidator = () => {
 };
 
 export default UrlValidator;
-    
