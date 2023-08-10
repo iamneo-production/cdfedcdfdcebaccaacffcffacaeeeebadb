@@ -1,150 +1,90 @@
+// src/components/UrlValidator/UrlValidator.jsx
 import React, { useState } from 'react';
-import isURL from 'validator/lib/isURL';
 
-function validateUrl(url) {
-  var pattern = new RegExp(
-    /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,3}(\/\S*)?$/
-  );
-  return pattern.test(url);
-}
-function UrlValidator() {
+const UrlValidator = () => {
   const [domain, setDomain] = useState('');
   const [path, setPath] = useState('');
   const [method, setMethod] = useState('GET');
   const [body, setBody] = useState('');
   const [message, setMessage] = useState('');
-  const [isRed, setRed] = useState(false);
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    let domain2 = event.target[0].value;
-    let path2 = event.target[1].value;
-    let method2 = event.target[2].value;
-    let body2 = event.target[3].value;
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-    const constructedUrl = `${domain2}/${path2.split(' ').join('/')}`;
-    if (!validateUrl(constructedUrl)) {
-      setMessage('Invalid URL! Please recheck your URL');
-      setRed(true);
+    let constructedPath = '';
+    if (path.trim() !== '') {
+      constructedPath = '/' + path.trim().replace(/\s+/g, '/');
+    }
+
+    if (method === 'DELETE') {
+      // No need to validate body for DELETE method
+      setMessage('URL Constructed: ' + domain + constructedPath);
     } else {
-      setRed(false);
-      var json;
-      if (method2 === 'POST' || method2 === 'PUT') {
-        try {
-          json = JSON.parse(body2);
-        } catch (exception) {
-          json = null;
-        }
-        if (json) {
-          //this is json
-          setRed(false);
-        } else {
+      if (method === 'GET' || method === 'POST' || method === 'PUT') {
+        if (body.trim() === '') {
           setMessage('Error in the Body');
-          setRed(true);
-          return;
-        }
-      }
-      var extra = null;
-      if (method2 === 'GET' && body2) {
-        try {
-          json = JSON.parse(body2);
-        } catch (exception) {
-          json = null;
-        }
-        if (json) {
-          // this is json
-          const query = Object.keys(json)
-            .map(
-              (k) => `${encodeURIComponent(k)}=${encodeURIComponent(json[k])}`
-            )
-            .join('&');
-          extra = query;
-          setRed(false);
         } else {
-          setMessage('Error in the Body of the Query Params');
-          setRed(true);
-          return;
+          setMessage('URL Constructed: ' + domain + constructedPath);
         }
-      }
-      if (extra !== null) {
-        setMessage(`${constructedUrl}?${extra}`);
-      } else {
-        setMessage(`${constructedUrl}`);
       }
     }
   };
 
   return (
     <div>
-      <div
-        data-testid="message"
-        className={message === '' ? 'dnone' : isRed ? 'cred' : 'cgreen'}
-      >
-        {message}
-      </div>
-      <form onSubmit={handleSubmit} data-testid="submit" className="forms">
-        <div className="form-body">
-          <label className="labelcss">Domain</label>
+      <form onSubmit={handleSubmit} data-testid="tags">
+        <label>
+          Domain:
           <input
-            name="domain"
             type="text"
-            placeholder="Enter the Domain URL"
             value={domain}
-            onChange={(event) => setDomain(event.target.value)}
+            onChange={(e) => setDomain(e.target.value)}
             data-testid="domain"
           />
-
-          <label className="labelcss">Path</label>
+        </label>
+        <br />
+        <label>
+          Path:
           <input
             type="text"
-            placeholder="Enter the path variables seperated by comma"
             value={path}
-            onChange={(event) => setPath(event.target.value)}
+            onChange={(e) => setPath(e.target.value)}
             data-testid="path"
           />
-
-          <label className="labelcss">Method</label>
+        </label>
+        <br />
+        <label>
+          Method:
           <select
             value={method}
-            onChange={(event) => setMethod(event.target.value)}
+            onChange={(e) => setMethod(e.target.value)}
             data-testid="method"
-            className="inptext"
           >
-            <option className="option-v" value="GET">
-              GET
-            </option>
-            <option value="POST" className="option-v">
-              POST
-            </option>
-            <option value="PUT" className="option-v">
-              PUT
-            </option>
-            <option value="DELETE" className="option-v">
-              DELETE
-            </option>
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="DELETE">DELETE</option>
           </select>
-
-          {method !== 'DELETE' && (
-            <label>
-              <label className="labelcss">Body</label>
-              <br />
-              <textarea
-                placeholder="Enter the Query Params as an Object"
-                value={body}
-                onChange={(event) => setBody(event.target.value)}
-                data-testid="body"
-              />
-            </label>
-          )}
-          <br />
-
-          <button type="submit" name="Validate">
-            Validate
-          </button>
-        </div>
+        </label>
+        <br />
+        {(method === 'GET' || method === 'POST' || method === 'PUT') && (
+          <label>
+            Body:
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              data-testid="body"
+            />
+          </label>
+        )}
+        <br />
+        <button type="submit" data-testid="submit">
+          Submit
+        </button>
       </form>
+      <div data-testid="message">{message}</div>
     </div>
   );
-}
+};
 
-export default UrlValidator;
+export default UrlValidator;
